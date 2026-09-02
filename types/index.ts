@@ -54,4 +54,5 @@ export interface AuditLog {
   type: AuditType;
   reason?: string;
   timestamp: string;
+  is_reported?: boolean;
 }

@@ -32,6 +32,11 @@ export default function PatientLoginScreen() {
       setLoading(true);
       setServerError('');
       const { patient, isNew } = await PatientService.login(data.identifier);
+      
+      if (!patient) {
+        throw new Error("Patient data is invalid");
+      }
+      
       loginPatient(patient);
       
       if (isNew) {

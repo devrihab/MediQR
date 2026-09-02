@@ -1,22 +1,66 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl, Platform, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import QRCode from 'react-native-qrcode-svg';
 import { Colors, Typography, Spacing, BorderRadius } from '../../constants/Theme';
 import { useAuthStore } from '../../store/useAuthStore';
+import { PatientService } from '../../lib/services/patient';
+import { QR } from '../../types';
 import { Button } from '../../components/ui/Button';
-import { Badge } from '../../components/ui/Badge';
-import { ShieldCheck, History, Settings, LogOut, Activity } from 'lucide-react-native';
+import { ShieldCheck, History, Settings, LogOut, Activity, RefreshCw } from 'lucide-react-native';
 
 export default function PatientDashboard() {
   const { patient, logout } = useAuthStore();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
+  const [activeQR, setActiveQR] = useState<QR | null>(null);
+  const [loadingQR, setLoadingQR] = useState(false);
 
-  const onRefresh = () => {
+  const loadQR = async () => {
+    if (!patient) return;
+    try {
+      const qr = await PatientService.getActiveQR(patient.id);
+      if (qr) setActiveQR(qr);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    loadQR();
+  }, [patient]);
+
+  const onRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 800);
+    await loadQR();
+    setRefreshing(false);
+  };
+  
+  const handleRegenerateQR = () => {
+    Alert.alert(
+      "Regenerate QR Code",
+      "Are you sure? This will immediately invalidate your previous code.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Regenerate", 
+          style: "destructive",
+          onPress: async () => {
+            if (!patient) return;
+            setLoadingQR(true);
+            try {
+              const newQR = await PatientService.regenerateQR(patient.id);
+              setActiveQR(newQR);
+            } catch (err) {
+              Alert.alert("Error", "Failed to regenerate QR code.");
+            } finally {
+              setLoadingQR(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   if (!patient) return null;
@@ -38,23 +82,37 @@ export default function PatientDashboard() {
 
         <View style={styles.qrSection}>
           <View style={styles.qrContainer}>
-            <QRCode
-              value={patient.id}
-              size={220}
-              color={Colors.text}
-              backgroundColor={Colors.white}
-              quietZone={16}
-            />
+            {activeQR ? (
+              <QRCode
+                value={activeQR.code_value}
+                size={220}
+                color={Colors.text}
+                backgroundColor={Colors.white}
+                quietZone={16}
+              />
+            ) : (
+              <View style={[styles.qrPlaceholder, { width: 220, height: 220 }]} />
+            )}
           </View>
           <View style={styles.securityBadge}>
             <ShieldCheck color={Colors.success} size={16} />
             <Text style={styles.securityText}>Consent-Gated Protection</Text>
           </View>
-          <Text style={styles.qrHelperText}>Medical personnel will scan this to request access.</Text>
+          <Text style={styles.qrHelperText}>Last updated: {new Date(patient.last_updated).toLocaleDateString()}</Text>
+          
+          <Button 
+            title="Regenerate QR"
+            variant="ghost"
+            icon={<RefreshCw size={16} color={Colors.textSecondary} />}
+            onPress={handleRegenerateQR}
+            isLoading={loadingQR}
+            textStyle={{ color: Colors.textSecondary }}
+            style={{ marginTop: Spacing.md }}
+          />
         </View>
 
         <View style={styles.summarySection}>
-          <Text style={styles.sectionHeader}>KEY MEDICAL INFO</Text>
+          <Text style={styles.sectionHeader}>MEDICAL IDENTITY SUMMARY</Text>
           
           <View style={styles.summaryRow}>
             <View style={styles.summaryItem}>
@@ -78,7 +136,7 @@ export default function PatientDashboard() {
         </View>
 
         <View style={styles.actionsSection}>
-          <Text style={styles.sectionHeader}>MANAGE IDENTITY</Text>
+          <Text style={styles.sectionHeader}>ACTIONS</Text>
           
           <Button
             title="Edit Medical Data"
@@ -150,6 +208,10 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
     }),
+  },
+  qrPlaceholder: {
+    backgroundColor: Colors.surfaceHover,
+    borderRadius: BorderRadius.lg,
   },
   securityBadge: {
     flexDirection: 'row',

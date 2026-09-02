@@ -1,106 +1,208 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
-import { Colors, Typography, Spacing } from '../../constants/Theme';
-import { ShieldAlert, Eye } from 'lucide-react-native';
-
-const MOCK_HISTORY = [
-  { id: '1', date: 'Oct 12, 2026', time: '14:30', doctor: 'Dr. Gregory House', type: 'normal_view' },
-  { id: '2', date: 'Sep 01, 2026', time: '09:15', doctor: 'Dr. James Wilson', type: 'emergency_view' },
-];
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
+import { Colors, Typography, Spacing, BorderRadius } from '../../constants/Theme';
+import { useAuthStore } from '../../store/useAuthStore';
+import { PatientService } from '../../lib/services/patient';
+import { AuditLog } from '../../types';
+import { AlertCircle, FileEdit, UserCheck, ShieldAlert, Check } from 'lucide-react-native';
+import { Button } from '../../components/ui/Button';
 
 export default function HistoryScreen() {
-  return (
+  const { patient } = useAuthStore();
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchLogs = async () => {
+    if (!patient) return;
+    try {
+      const data = await PatientService.getAccessHistory(patient.id);
+      setLogs(data);
+    } catch (err) {
+      console.error('Failed to fetch history', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchLogs();
+  }, [patient]);
+
+  const handleReport = async (logId: string) => {
+    Alert.alert(
+      "Report Access",
+      "Are you sure you want to flag this access? A security report will be logged.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { 
+          text: "Report", 
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await PatientService.reportAccess(logId);
+              // Optimistic update
+              setLogs(prev => prev.map(l => l.id === logId ? { ...l, is_reported: true } : l));
+            } catch (err) {
+              Alert.alert("Error", "Failed to report access.");
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const renderIcon = (type: string) => {
+    switch (type) {
+      case 'edit_data': return <FileEdit color={Colors.textSecondary} size={20} />;
+      case 'normal_view': return <UserCheck color={Colors.success} size={20} />;
+      case 'emergency_view': return <ShieldAlert color={Colors.error} size={20} />;
+      default: return <AlertCircle color={Colors.textSecondary} size={20} />;
+    }
+  };
+
+  const getTitle = (type: string) => {
+    switch (type) {
+      case 'edit_data': return 'Data Updated';
+      case 'normal_view': return 'Access Granted';
+      case 'emergency_view': return 'EMERGENCY ACCESS — LOGGED';
+      case 'request_expired': return 'Request Expired';
+      default: return 'Activity Logged';
+    }
+  };
+
+  const renderItem = ({ item }: { item: AuditLog }) => {
+    const isEmergency = item.type === 'emergency_view';
     
-      <View style={styles.container}>
-        <FlatList
-          data={MOCK_HISTORY}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-          renderItem={({ item }) => (
-            <View style={styles.row}>
-              <View style={[styles.iconContainer, item.type === 'emergency_view' && styles.iconContainerEmergency]}>
-                {item.type === 'emergency_view' ? (
-                  <ShieldAlert color={Colors.error} size={20} />
-                ) : (
-                  <Eye color={Colors.primary} size={20} />
-                )}
-              </View>
-              <View style={styles.content}>
-                <Text style={styles.doctor}>{item.doctor}</Text>
-                <Text style={[styles.type, item.type === 'emergency_view' && styles.typeEmergency]}>
-                  {item.type === 'emergency_view' ? 'Emergency Override' : 'Authorized Access'}
-                </Text>
-              </View>
-              <View style={styles.timeInfo}>
-                <Text style={styles.date}>{item.date}</Text>
-                <Text style={styles.time}>{item.time}</Text>
-              </View>
+    return (
+      <View style={[styles.row, isEmergency && styles.emergencyRow]}>
+        <View style={styles.iconContainer}>
+          {renderIcon(item.type)}
+        </View>
+        <View style={styles.content}>
+          <Text style={[styles.title, isEmergency && styles.emergencyTitle]}>{getTitle(item.type)}</Text>
+          <Text style={styles.timestamp}>{new Date(item.timestamp).toLocaleString()}</Text>
+          {item.doctor_id && (
+            <Text style={styles.details}>Provider ID: {item.doctor_id}</Text>
+          )}
+          {item.reason && (
+            <Text style={styles.details}>Reason: {item.reason}</Text>
+          )}
+          
+          {isEmergency && (
+            <View style={styles.reportContainer}>
+              {item.is_reported ? (
+                <View style={styles.reportedBadge}>
+                  <Check color={Colors.error} size={14} />
+                  <Text style={styles.reportedText}>Reported</Text>
+                </View>
+              ) : (
+                <TouchableOpacity onPress={() => handleReport(item.id)}>
+                  <Text style={styles.reportAction}>Report this access</Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
-        />
+        </View>
       </View>
-    
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={logs}
+        keyExtractor={item => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={styles.list}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ListEmptyComponent={<Text style={styles.emptyText}>No access history found.</Text>}
+        refreshing={loading}
+        onRefresh={fetchLogs}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: Colors.background,
   },
-  container: {
+  center: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   list: {
     paddingVertical: Spacing.md,
   },
-  separator: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginLeft: 72, // Aligned with text
-  },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
     padding: Spacing.xl,
+    paddingVertical: Spacing.lg,
+  },
+  emergencyRow: {
+    backgroundColor: Colors.errorSurface,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.primarySurface,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginRight: Spacing.md,
-  },
-  iconContainerEmergency: {
-    backgroundColor: Colors.errorSurface,
+    marginTop: 2,
   },
   content: {
     flex: 1,
   },
-  doctor: {
+  title: {
     ...Typography.bodyMedium,
     color: Colors.text,
+    marginBottom: 4,
   },
-  type: {
-    ...Typography.smallMedium,
+  emergencyTitle: {
+    color: Colors.error,
+    fontWeight: '700',
+  },
+  timestamp: {
+    ...Typography.metadata,
     color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
+  },
+  details: {
+    ...Typography.small,
+    color: Colors.text,
     marginTop: 2,
   },
-  typeEmergency: {
-    color: Colors.error,
+  separator: {
+    height: 1,
+    backgroundColor: Colors.border,
   },
-  timeInfo: {
-    alignItems: 'flex-end',
+  emptyText: {
+    ...Typography.body,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    marginTop: Spacing.xxl,
   },
-  date: {
+  reportContainer: {
+    marginTop: Spacing.sm,
+  },
+  reportAction: {
     ...Typography.smallMedium,
-    color: Colors.text,
+    color: Colors.error,
+    textDecorationLine: 'underline',
   },
-  time: {
-    ...Typography.small,
-    color: Colors.textSecondary,
+  reportedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
+  reportedText: {
+    ...Typography.smallMedium,
+    color: Colors.error,
+  }
 });
