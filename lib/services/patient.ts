@@ -13,20 +13,44 @@ const isConfigured = () => {
 };
 
 export const PatientService = {
-  async login(identifier: string): Promise<{ patient: Patient | null, isNew: boolean }> {
-    const id = `p-${identifier.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+  async login(email: string, password: string): Promise<{ patient: Patient | null, isNew: boolean }> {
+    // Deterministic fallback ID
+    const id = `p-${email.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
     
     try {
       if (!isConfigured()) throw new Error('Supabase not configured');
       
+      let user = null;
+      // Try real Supabase Auth
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+      
+      if (signInError) {
+        if (signInError.message.includes('Invalid login credentials')) {
+          // Auto sign-up for hackathon MVP experience
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
+          if (signUpError) throw signUpError;
+          user = signUpData.user;
+          if (!user) throw new Error("Signup failed");
+        } else {
+          throw signInError;
+        }
+      } else {
+        user = signInData.user;
+      }
+
+      if (!user) throw new Error("Auth failed");
+
+      // Use the real authenticated user's ID
+      const patientId = user.id;
+      
       const { data, error } = await supabase
         .from('patients')
         .select('*')
-        .eq('id', id)
+        .eq('id', patientId)
         .single();
 
       if (error && error.code === 'PGRST116') {
-        return { patient: { id, name: identifier } as Patient, isNew: true };
+        return { patient: { id: patientId, email, name: '' } as Patient, isNew: true };
       }
       
       if (error) throw error;
@@ -36,7 +60,7 @@ export const PatientService = {
       if (MEMORY_DB.patients.has(id)) {
         return { patient: MEMORY_DB.patients.get(id)!, isNew: false };
       }
-      return { patient: { id, name: identifier } as Patient, isNew: true };
+      return { patient: { id, email, name: '' } as Patient, isNew: true };
     }
   },
 

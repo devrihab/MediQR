@@ -11,7 +11,8 @@ import { PatientService } from '../../lib/services/patient';
 import { useAuthStore } from '../../store/useAuthStore';
 
 const loginSchema = z.object({
-  identifier: z.string().min(2, 'Name or ID is required'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -24,14 +25,14 @@ export default function PatientLoginScreen() {
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { identifier: '' }
+    defaultValues: { email: '', password: '' }
   });
 
   const onSubmit = async (data: LoginFormData) => {
     try {
       setLoading(true);
       setServerError('');
-      const { patient, isNew } = await PatientService.login(data.identifier);
+      const { patient, isNew } = await PatientService.login(data.email, data.password);
       
       if (!patient) {
         throw new Error("Patient data is invalid");
@@ -45,7 +46,7 @@ export default function PatientLoginScreen() {
         router.replace('/(patient)/dashboard');
       }
     } catch (err: any) {
-      setServerError('Failed to login. Please try again.');
+      setServerError(err.message || 'Failed to login. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -65,15 +66,31 @@ export default function PatientLoginScreen() {
         <View style={styles.form}>
           <Controller
             control={control}
-            name="identifier"
+            name="email"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="Name or Patient ID"
-                placeholder="e.g. Alex Johnson or p-12345"
+                label="Email Address"
+                placeholder="alex@example.com"
                 value={value}
                 onChangeText={onChange}
-                autoCapitalize="words"
-                error={errors.identifier?.message}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                error={errors.email?.message}
+              />
+            )}
+          />
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                label="Password"
+                placeholder="••••••••"
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry
+                autoCapitalize="none"
+                error={errors.password?.message}
               />
             )}
           />
