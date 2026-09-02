@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Typography, Spacing, BorderRadius } from '../../constants/Theme';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -9,6 +9,7 @@ import { Scan } from 'lucide-react-native';
 
 export default function ScanScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [mockId, setMockId] = useState('p-12345');
 
   const handleSimulateScan = () => {
@@ -17,7 +18,6 @@ export default function ScanScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.cameraPlaceholder}>
           <Scan color={Colors.white} size={64} style={styles.scanIcon} />
@@ -25,7 +25,7 @@ export default function ScanScreen() {
           <Text style={styles.cameraSubtext}>Align QR code within the frame</Text>
         </View>
         
-        <View style={styles.simulatorContainer}>
+        <View style={[styles.simulatorContainer, { paddingBottom: Math.max(insets.bottom, Spacing.xl) }]}>
           <Text style={styles.simTitle}>Development Simulator</Text>
           <Input 
             label="Simulated QR Value (Patient ID)" 
@@ -39,7 +39,6 @@ export default function ScanScreen() {
           />
         </View>
       </View>
-    </SafeAreaView>
   );
 }
 
@@ -75,7 +74,6 @@ const styles = StyleSheet.create({
   simulatorContainer: {
     backgroundColor: Colors.background,
     padding: Spacing.xl,
-    paddingBottom: Platform.OS === 'android' ? Spacing.xl : Spacing.xxxl,
     borderTopLeftRadius: BorderRadius.xxl,
     borderTopRightRadius: BorderRadius.xxl,
   },

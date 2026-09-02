@@ -1,5 +1,4 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { Colors, Typography, Spacing } from '../../constants/Theme';
 import { ShieldAlert, Eye } from 'lucide-react-native';
@@ -11,7 +10,7 @@ const MOCK_HISTORY = [
 
 export default function HistoryScreen() {
   return (
-    <SafeAreaView style={styles.safeArea}>
+    
       <View style={styles.container}>
         <FlatList
           data={MOCK_HISTORY}
@@ -41,7 +40,7 @@ export default function HistoryScreen() {
           )}
         />
       </View>
-    </SafeAreaView>
+    
   );
 }
 

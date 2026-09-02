@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.xl,
     justifyContent: 'space-between',
-    paddingVertical: Platform.OS === 'android' ? Spacing.xxxl : Spacing.xxxl * 1.5,
+    paddingVertical: Spacing.xl,
   },
   header: {
     marginTop: Spacing.xl,

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors, Typography, Spacing } from '../../constants/Theme';
@@ -29,7 +28,7 @@ export default function AccessRequestScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    
       <View style={styles.container}>
         <View style={styles.content}>
           {requestState === 'initial' && (
@@ -93,7 +92,7 @@ export default function AccessRequestScreen() {
           )}
         </View>
       </View>
-    </SafeAreaView>
+    
   );
 }
 

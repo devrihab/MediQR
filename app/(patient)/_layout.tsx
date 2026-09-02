@@ -12,14 +12,17 @@ export default function PatientLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false,
+        headerStyle: { backgroundColor: Colors.background },
+        headerShadowVisible: false,
+        headerTintColor: Colors.text,
+        headerTitleStyle: { fontWeight: '600' },
         contentStyle: { backgroundColor: Colors.background },
       }}
     >
-      <Stack.Screen name="dashboard" />
-      <Stack.Screen name="setup" />
-      <Stack.Screen name="history" />
-      <Stack.Screen name="edit-data" />
+      <Stack.Screen name="dashboard" options={{ headerShown: false }} />
+      <Stack.Screen name="setup" options={{ title: 'Setup Data' }} />
+      <Stack.Screen name="history" options={{ title: 'Access History', headerBackTitle: 'Back' }} />
+      <Stack.Screen name="edit-data" options={{ title: 'Update Identity', headerBackTitle: 'Back' }} />
     </Stack>
   );
 }

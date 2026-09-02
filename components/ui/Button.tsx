@@ -93,7 +93,7 @@ export function Button({
 
 const styles = StyleSheet.create({
   container: {
-    minHeight: 48, // Accessibility: Touch target >= 44px
+    height: 52,
     borderRadius: BorderRadius.md,
     flexDirection: 'row',
     alignItems: 'center',

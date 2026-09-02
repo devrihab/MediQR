@@ -41,7 +41,7 @@ export function Input({ label, error, onFocus, onBlur, ...props }: InputProps) {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: Spacing.md,
+    width: '100%',
   },
   label: {
     ...Typography.smallMedium,
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.background,
-    minHeight: 48,
+    height: 52, // Fixed height instead of minHeight
     paddingHorizontal: Spacing.md,
     justifyContent: 'center',
   },
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   input: {
     ...Typography.body,
     color: Colors.text,
-    height: '100%',
+    flex: 1, // Let it fill space naturally
   },
   errorText: {
     ...Typography.metadata,

@@ -1,5 +1,4 @@
 import React from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Colors, Typography, Spacing } from '../../constants/Theme';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -11,9 +10,9 @@ export default function EditDataScreen() {
   const { patient } = useAuthStore();
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ScrollView style={[styles.container, { flex: 1 }]} contentContainerStyle={styles.content}>
           <Text style={styles.title}>Update Identity</Text>
           <Text style={styles.subtitle}>Keep your medical information current.</Text>
           
@@ -36,7 +35,7 @@ export default function EditDataScreen() {
           <Button title="Save Changes" onPress={() => {}} style={styles.saveButton} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    
   );
 }
 

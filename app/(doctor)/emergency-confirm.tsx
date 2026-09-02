@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Colors, Typography, Spacing, BorderRadius } from '../../constants/Theme';
@@ -18,9 +17,9 @@ export default function EmergencyConfirmScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
           <View style={styles.header}>
             <View style={styles.iconContainer}>
               <ShieldAlert color={Colors.error} size={48} />
@@ -65,7 +64,7 @@ export default function EmergencyConfirmScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    
   );
 }
 

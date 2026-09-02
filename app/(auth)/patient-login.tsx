@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -44,12 +43,12 @@ export default function PatientLoginScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background }}>
+    
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
           <View style={styles.header}>
             <Text style={styles.title}>Patient Access</Text>
             <Text style={styles.subtitle}>Enter your details to access your medical identity.</Text>
@@ -97,7 +96,7 @@ export default function PatientLoginScreen() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-    </SafeAreaView>
+    
   );
 }
 
@@ -108,8 +107,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   header: {
-    marginTop: Spacing.xxl,
-    marginBottom: Spacing.xl,
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   title: {
     ...Typography.h1,

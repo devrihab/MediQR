@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Colors, Typography, Spacing, BorderRadius } from '../../constants/Theme';
@@ -45,7 +44,7 @@ export default function MedicalDataScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         {emergency === 'true' && (
           <View style={styles.emergencyBanner}>
@@ -107,7 +106,7 @@ export default function MedicalDataScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    
   );
 }
 

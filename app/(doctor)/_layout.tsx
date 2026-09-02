@@ -12,15 +12,18 @@ export default function DoctorLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false,
+        headerStyle: { backgroundColor: Colors.background },
+        headerShadowVisible: false,
+        headerTintColor: Colors.text,
+        headerTitleStyle: { fontWeight: '600' },
         contentStyle: { backgroundColor: Colors.background },
       }}
     >
-      <Stack.Screen name="dashboard" />
-      <Stack.Screen name="scan" />
-      <Stack.Screen name="access-request" />
-      <Stack.Screen name="emergency-confirm" />
-      <Stack.Screen name="medical-data" />
+      <Stack.Screen name="dashboard" options={{ headerShown: false }} />
+      <Stack.Screen name="scan" options={{ title: 'Scan QR', headerBackTitle: 'Back' }} />
+      <Stack.Screen name="access-request" options={{ title: 'Request Access', headerBackTitle: 'Back' }} />
+      <Stack.Screen name="emergency-confirm" options={{ title: 'Emergency Override', headerBackTitle: 'Back' }} />
+      <Stack.Screen name="medical-data" options={{ title: 'Patient File', headerBackTitle: 'Back' }} />
     </Stack>
   );
 }
