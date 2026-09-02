@@ -3,15 +3,35 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import * as SecureStore from 'expo-secure-store';
 import { Role, Patient, Doctor } from '../types';
 
-// Custom storage wrapper for Expo SecureStore
+import { Platform } from 'react-native';
+
+// Custom storage wrapper for Expo SecureStore with Web/SSR fallback
 const secureStorage = {
   getItem: async (name: string): Promise<string | null> => {
+    if (Platform.OS === 'web') {
+      if (typeof localStorage !== 'undefined') {
+        return localStorage.getItem(name);
+      }
+      return null;
+    }
     return await SecureStore.getItemAsync(name);
   },
   setItem: async (name: string, value: string): Promise<void> => {
+    if (Platform.OS === 'web') {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(name, value);
+      }
+      return;
+    }
     await SecureStore.setItemAsync(name, value);
   },
   removeItem: async (name: string): Promise<void> => {
+    if (Platform.OS === 'web') {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem(name);
+      }
+      return;
+    }
     await SecureStore.deleteItemAsync(name);
   },
 };
