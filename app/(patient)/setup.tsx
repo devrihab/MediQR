@@ -8,6 +8,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { PatientService } from '../../lib/services/patient';
 import { Colors, Typography, Spacing } from '../../constants/Theme';
 import { Input } from '../../components/ui/Input';
+import { Select } from '../../components/ui/Select';
 import { Button } from '../../components/ui/Button';
 import { Divider } from '../../components/ui/Divider';
 import { Trash2, Plus } from 'lucide-react-native';
@@ -116,7 +117,17 @@ export default function SetupScreen() {
                   <Input placeholder="Allergy name" value={value} onChangeText={onChange} error={errors.allergies?.[index]?.name?.message} />
                 )} />
                 <Controller control={control} name={`allergies.${index}.severity`} render={({ field: { onChange, value } }) => (
-                  <Input placeholder="Severity (mild/moderate/severe)" value={value} onChangeText={onChange} error={errors.allergies?.[index]?.severity?.message} />
+                  <Select 
+                    placeholder="Select Severity" 
+                    value={value} 
+                    onSelect={onChange} 
+                    options={[
+                      { label: 'Mild', value: 'mild' },
+                      { label: 'Moderate', value: 'moderate' },
+                      { label: 'Severe', value: 'severe' },
+                    ]}
+                    error={errors.allergies?.[index]?.severity?.message} 
+                  />
                 )} />
               </View>
               <TouchableOpacity onPress={() => removeAllergy(index)} style={styles.deleteBtn}><Trash2 color={Colors.error} size={20} /></TouchableOpacity>
