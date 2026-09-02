@@ -11,8 +11,7 @@ import { PatientService } from '../../lib/services/patient';
 import { useAuthStore } from '../../store/useAuthStore';
 
 const loginSchema = z.object({
-  name: z.string().min(2, 'Name is required'),
-  email: z.string().email('Invalid email address'),
+  identifier: z.string().min(2, 'Name or ID is required'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -25,16 +24,21 @@ export default function PatientLoginScreen() {
 
   const { control, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { name: '', email: '' }
+    defaultValues: { identifier: '' }
   });
 
   const onSubmit = async (data: LoginFormData) => {
     try {
       setLoading(true);
       setServerError('');
-      const patient = await PatientService.login(data.name, data.email);
+      const { patient, isNew } = await PatientService.login(data.identifier);
       loginPatient(patient);
-      router.replace('/(patient)/dashboard');
+      
+      if (isNew) {
+        router.replace('/(patient)/setup');
+      } else {
+        router.replace('/(patient)/dashboard');
+      }
     } catch (err: any) {
       setServerError('Failed to login. Please try again.');
     } finally {
@@ -43,7 +47,6 @@ export default function PatientLoginScreen() {
   };
 
   return (
-    
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -57,30 +60,15 @@ export default function PatientLoginScreen() {
         <View style={styles.form}>
           <Controller
             control={control}
-            name="name"
+            name="identifier"
             render={({ field: { onChange, value } }) => (
               <Input
-                label="Full Name"
-                placeholder="e.g. Alex Johnson"
+                label="Name or Patient ID"
+                placeholder="e.g. Alex Johnson or p-12345"
                 value={value}
                 onChangeText={onChange}
                 autoCapitalize="words"
-                error={errors.name?.message}
-              />
-            )}
-          />
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Email Address"
-                placeholder="alex@example.com"
-                value={value}
-                onChangeText={onChange}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                error={errors.email?.message}
+                error={errors.identifier?.message}
               />
             )}
           />
@@ -96,7 +84,6 @@ export default function PatientLoginScreen() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
-    
   );
 }
 

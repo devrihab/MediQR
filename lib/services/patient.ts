@@ -21,22 +21,40 @@ const MOCK_PATIENT: Patient = {
 
 export const PatientService = {
   async getPatientData(patientId: string): Promise<Patient> {
-    // In production:
-    // const { data, error } = await supabase.from('patients').select('*').eq('id', patientId).single();
-    // if (error) throw error;
-    // return data;
-    
     return new Promise((resolve) => setTimeout(() => resolve(MOCK_PATIENT), 600));
   },
 
-  async login(name: string, email: string): Promise<Patient> {
-    // In production, real auth would happen here
-    return new Promise((resolve) => setTimeout(() => resolve(MOCK_PATIENT), 800));
+  async login(identifier: string): Promise<{ patient: Patient, isNew: boolean }> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const isNew = identifier.toLowerCase().includes('new');
+        if (isNew) {
+          resolve({
+            isNew: true,
+            patient: {
+              id: `p-${Math.floor(Math.random() * 10000)}`,
+              name: identifier,
+              email: '',
+              blood_group: 'Unknown',
+              allergies: [],
+              conditions: [],
+              medications: [],
+              emergency_contact: { name: '', phone: '', relation: '' },
+              last_updated: new Date().toISOString(),
+              data_source: 'Self-reported',
+            }
+          });
+        } else {
+          resolve({
+            isNew: false,
+            patient: { ...MOCK_PATIENT, name: identifier }
+          });
+        }
+      }, 800);
+    });
   },
   
   async getPendingAccessRequests(patientId: string): Promise<AccessRequest[]> {
-    // In production:
-    // const { data } = await supabase.from('access_requests').select('*').eq('patient_id', patientId).eq('status', 'pending');
     return new Promise((resolve) => setTimeout(() => resolve([]), 500));
   }
 };
