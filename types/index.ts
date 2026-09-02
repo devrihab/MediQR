@@ -1,0 +1,57 @@
+export type Role = 'patient' | 'doctor';
+
+export interface Patient {
+  id: string;
+  name: string;
+  email: string;
+  blood_group: string;
+  allergies: Allergy[];
+  conditions: string[];
+  medications: string[];
+  emergency_contact: {
+    name: string;
+    phone: string;
+    relation: string;
+  };
+  last_updated: string;
+  data_source: string;
+}
+
+export interface Allergy {
+  name: string;
+  severity: 'mild' | 'moderate' | 'severe';
+}
+
+export interface Doctor {
+  id: string;
+  name: string;
+}
+
+export type AccessRequestStatus = 'pending' | 'approved' | 'expired';
+
+export interface AccessRequest {
+  id: string;
+  doctor_id: string;
+  patient_id: string;
+  status: AccessRequestStatus;
+  otp_code: string;
+  created_at: string;
+  resolved_at?: string;
+}
+
+export interface QR {
+  patient_id: string;
+  code_value: string;
+  is_active: boolean;
+}
+
+export type AuditType = 'normal_view' | 'emergency_view' | 'request_expired' | 'edit_data';
+
+export interface AuditLog {
+  id: string;
+  doctor_id?: string;
+  patient_id: string;
+  type: AuditType;
+  reason?: string;
+  timestamp: string;
+}
